@@ -247,7 +247,7 @@ public class RegistrationActivity extends AppCompatActivity {
     private void startCropImageActivity(Uri imageUri) {
         CropImage.activity(imageUri)
         .setMinCropResultSize(200,200)
-                .setMaxCropResultSize(300,300)
+                .setMaxCropResultSize(400,400)
                 .start(this);
     }
 }

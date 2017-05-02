@@ -1,6 +1,10 @@
 package com.example.goku.basket;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,6 +14,7 @@ import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -17,6 +22,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,6 +50,7 @@ public class RegistrationActivity extends AppCompatActivity {
     private Matcher matcher;
 
     private Uri filePath;
+    private CardView cardViewProfilePick;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,9 +60,10 @@ public class RegistrationActivity extends AppCompatActivity {
         btnRegister = (Button) findViewById(R.id.btnRegister);
         btnLinkToLogin = (Button) findViewById(R.id.btnSignIn);
 
-        fabChooseImage =(FloatingActionButton) findViewById(R.id.floatingActionButton);
+        fabChooseImage = (FloatingActionButton) findViewById(R.id.floatingActionButton);
 
         imageView = (ImageView) findViewById(R.id.imageView3);
+        cardViewProfilePick = (CardView) findViewById(R.id.cardViewProfilePic);
 
         nameWrapper = (TextInputLayout) findViewById(R.id.input_layout_name);
         emailWrapper = (TextInputLayout) findViewById(R.id.input_layout_email_1);
@@ -75,7 +85,7 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //To Choose profile Image
-               showFileChooser();
+                onSelectImageClick(v);
             }
         });
 
@@ -85,16 +95,12 @@ public class RegistrationActivity extends AppCompatActivity {
                 //For Registration.
 
 
-                if (!validateName()){
-                }
-                else if (!validateEmail()){
-                }
-                else if (!validatePhone()){
-                }
-                else if (!validatePassword()){
-                }
-                else{
-                    Toast.makeText(getApplicationContext(),"Registration Complete",Toast.LENGTH_LONG).show();
+                if (!validateName()) {
+                } else if (!validateEmail()) {
+                } else if (!validatePhone()) {
+                } else if (!validatePassword()) {
+                } else {
+                    Toast.makeText(getApplicationContext(), "Registration Complete", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -104,33 +110,10 @@ public class RegistrationActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //Link to Login Screen.
                 //Navigate to Login Screen
-                 startActivity(new Intent(RegistrationActivity.this,LoginActivity.class));
+                startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
                 finish();
             }
         });
-    }
-
-    private void showFileChooser() {
-        //To Choose Image
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent,"Select Profile Pic"),PICK_IMAGE_REQUEST);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null){
-            filePath = data.getData();
-            try{
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),filePath);
-                imageView.setImageBitmap(bitmap);
-            }
-            catch (IOException e){
-                e.printStackTrace();
-            }
-        }
     }
 
     private boolean validateName(){
@@ -215,5 +198,56 @@ public class RegistrationActivity extends AppCompatActivity {
 
             }
         }
+    }
+
+    public void onSelectImageClick(View view) {
+        CropImage.startPickImageActivity(this);
+    }
+
+    @Override
+    @SuppressLint("NewApi")
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // handle result of pick image chooser
+        if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            Uri imageUri = CropImage.getPickImageResultUri(this, data);
+
+            // For API >= 23 we need to check specifically that we have permissions to read external storage.
+            if (CropImage.isReadExternalStoragePermissionsRequired(this, imageUri)) {
+                // request permissions and handle the result in onRequestPermissionsResult()
+                filePath = imageUri;
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},   CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE);
+            } else {
+                // no permissions required or already grunted, can start crop image activity
+                startCropImageActivity(imageUri);
+            }
+        }
+        // handle result of CropImageActivity
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                imageView.setImageURI(result.getUri());
+               // Toast.makeText(this, "Cropping successful, Sample: " + result.getSampleSize(), Toast.LENGTH_LONG).show();
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Toast.makeText(this, "Cropping failed: " + result.getError(), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (requestCode == CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE) {
+            if (filePath != null && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // required permissions granted, start crop image activity
+                startCropImageActivity(filePath);
+            } else {
+                Toast.makeText(this, "Cancelling, required permissions are not granted", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void startCropImageActivity(Uri imageUri) {
+        CropImage.activity(imageUri)
+        .setMinCropResultSize(200,200)
+                .setMaxCropResultSize(300,300)
+                .start(this);
     }
 }

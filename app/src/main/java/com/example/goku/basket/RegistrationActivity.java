@@ -17,7 +17,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -114,6 +116,14 @@ public class RegistrationActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        findViewById(android.R.id.content).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                hideKeyboard(v);
+                return false;
+            }
+        });
     }
 
     private boolean validateName(){
@@ -195,7 +205,6 @@ public class RegistrationActivity extends AppCompatActivity {
                 case R.id.input_password_1:
                     validatePassword();
                     break;
-
             }
         }
     }
@@ -246,8 +255,16 @@ public class RegistrationActivity extends AppCompatActivity {
 
     private void startCropImageActivity(Uri imageUri) {
         CropImage.activity(imageUri)
-        .setMinCropResultSize(200,200)
-                .setMaxCropResultSize(400,400)
+                .setMultiTouchEnabled(true)
+                .setAutoZoomEnabled(true)
+                .setMinCropResultSize(600,600)
+                .setCropShape(CropImageView.CropShape.RECTANGLE)
                 .start(this);
+    }
+
+    //For Hiding Keyboard
+    public void hideKeyboard(View view) {
+        InputMethodManager inputMethodManager =(InputMethodManager)getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }

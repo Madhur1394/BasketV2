@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,10 +15,38 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private String basketName_1,basketDescription_1;
+    public int basketCost_1;
+    public List<ItemList> itemList_1;
+
+    private RecyclerView recyclerView;
+    private MyViewHolder adapter;
+    private ArrayList<Basket> basketList;
+
+    public Basket basket;
+
+    public LinearLayoutManager linearLayout;
+    private ProgressBar progressBar;
+
+    private FirebaseDatabase basketDatabase;
+    private DatabaseReference basketReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,18 +55,36 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        progressBar = (ProgressBar) findViewById(R.id.progressBar3);
+
+
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerViewBasket);
+        linearLayout = new LinearLayoutManager(MainActivity.this);
+        recyclerView.setLayoutManager(linearLayout);
+
+        basketDatabase = FirebaseDatabase.getInstance();
+
+        basketList = new ArrayList<>();
+
+        basketReference = basketDatabase.getReference("baskets");
+
+
+        //ADAPTER
+        adapter=new MyViewHolder(MainActivity.this,retrieve());
+        recyclerView.setAdapter(adapter);
+        progressBar.setVisibility(View.INVISIBLE);
+
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                /* Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         *.setAction("Action", null).show();*/
-               try {
-                   startActivity(new Intent(MainActivity.this, LoginActivity.class));
-               }
-               catch(Exception e){
-                   Toast.makeText(getApplicationContext(),e.toString(),Toast.LENGTH_LONG).show();
-               }
+                   startActivity(new Intent(MainActivity.this, AddBasketApp.class));
+
+
             }
         });
 
@@ -49,6 +97,8 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
+
 
     @Override
     public void onBackPressed() {
@@ -106,4 +156,33 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    //READ BY HOOKING ONTO DATABASE OPERATION CALLBACKS
+    public ArrayList<Basket> retrieve()
+    {
+        basketReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                fetchData(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        return basketList;
+    }
+
+    //IMPLEMENT FETCH DATA AND FILL ARRAYLIST
+    private void fetchData(DataSnapshot dataSnapshot)
+    {
+        basketList.clear();
+        for (DataSnapshot ds : dataSnapshot.getChildren())
+        {
+            Basket basket=ds.getValue(Basket.class);
+            basketList.add(basket);
+        }
+    }
+
 }

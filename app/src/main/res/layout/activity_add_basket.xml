@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_basket_activity"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/background_light"
+        app:popupTheme="@style/AppTheme.PopupOverlay" />
+    <ProgressBar
+        android:id="@+id/progressBarBasket"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="invisible"/>
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_marginTop="30dp"
+        android:layout_height="140dp"
+        android:clipToPadding="false"
+        style="@style/MyCardViewStyle">
+
+
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/inputLayoutBasketTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hintTextAppearance="@style/MyHintText">
+
+            <EditText
+                android:id="@+id/editText_basket_title"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:theme="@style/MyEditText"
+                android:background="@android:color/transparent"
+                android:hint="Basket Title"
+                android:textSize="30dp"/>
+        </android.support.design.widget.TextInputLayout>
+
+        <EditText
+            android:layout_gravity="bottom"
+            android:id="@+id/editText_basket_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:background="@android:color/transparent"
+            android:theme="@style/MyEditText"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:hint="tap add to basket description..(Optional)"
+            />
+
+    </android.support.v7.widget.CardView>
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="70dp"
+        style="@style/MyCardViewStyle">
+
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fabItemAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            app:backgroundTint="@color/cardview_light_background"
+            app:fabSize="mini"
+            android:layout_marginTop="5dp"
+            app:srcCompat="@android:drawable/ic_input_add" />
+
+        <EditText
+            android:id="@+id/editTextAddItem"
+            android:layout_width="260dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:hint="Add item"
+            android:background="@android:color/transparent"
+            android:layout_gravity="center"
+            android:theme="@style/MyEditText"
+            android:inputType="textPersonName"
+             />
+
+
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content"
+        style="@style/MyRecyclerViewStyle">
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewItemList"
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content"
+        android:clipToPadding="true"
+        android:scrollbars="vertical"/>
+</android.support.v7.widget.CardView>
+</LinearLayout>

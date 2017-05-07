@@ -110,7 +110,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
     private void removeAt(int position) {
         itemList.remove(position);
         notifyItemRemoved(position);
-       // notifyItemRangeChanged(position, getItemCount());
+       notifyItemRangeChanged(position, getItemCount());
     }
 
     @Override

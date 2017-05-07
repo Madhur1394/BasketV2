@@ -43,7 +43,7 @@ import java.util.List;
 
 public class AddBasketApp extends AppCompatActivity {
 
-    private EditText editTextBasketTitle,editTextBasketDes,editTextBasketBudget,editTextItemName;
+    private EditText editTextBasketTitle,editTextBasketDes,editTextItemName;
     private FloatingActionButton fabAddItem;
     private TextInputLayout input_title;
     private ProgressBar progressbar;
@@ -185,6 +185,10 @@ public class AddBasketApp extends AppCompatActivity {
                 }
                 else {
                     try {
+                        if(itemList.isEmpty()){
+                            Toast.makeText(getApplicationContext(),"Item list is Null",Toast.LENGTH_LONG).show();
+                            basketCost1 = 0;
+                        }
                         basketName1 = editTextBasketTitle.getText().toString();
                         basketDescription1 = editTextBasketDes.getText().toString();
                         basketName.setText(basketName1);
@@ -205,12 +209,12 @@ public class AddBasketApp extends AppCompatActivity {
                                 .title("Basket")
                                 .customView(ll, true)
                                 .positiveText("Ok")
-
                                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                                     @Override
                                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                                         try {
                                             sendDataIntoMainActivity();
+                                            progressbar.setVisibility(View.GONE);
 
                                         }
                                         catch(Exception e){
@@ -250,19 +254,14 @@ public class AddBasketApp extends AppCompatActivity {
                 {
                   return;
                 }
-                progressbar.setVisibility(View.GONE);
+
             }
         });
     }
 
     private void sendDataIntoMainActivity() {
 
-        //Items item = new Items();
-        //item.setObjects(itemList);
-        //basket = new Basket(basketName1,basketDescription1,basketCost1,null);
         Intent intent = new Intent(AddBasketApp.this,MainActivity.class);
-       // intent.putExtra("basket",(Serializable) basket);
-       // intent.putExtra("item_list",(Serializable) item);
         startActivity(intent);
         finish();
     }

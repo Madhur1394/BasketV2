@@ -102,7 +102,7 @@
                 android:layout_gravity="center"
                 android:paddingBottom="7dp"
                 android:paddingTop="7dp"
-                android:text="  __________Or___________"
+                android:text="  __________Or__________"
                 android:textSize="25dp" />
 
 

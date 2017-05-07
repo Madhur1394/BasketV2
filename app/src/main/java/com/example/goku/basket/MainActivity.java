@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity
 
     private String basketName_1,basketDescription_1;
     public int basketCost_1;
-    public List<ItemList> itemList_1;
 
     private RecyclerView recyclerView;
     private MyViewHolder adapter;
@@ -56,23 +55,25 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar3);
-
-
+        progressBar.setVisibility(View.INVISIBLE);
         recyclerView = (RecyclerView) findViewById(R.id.recyclerViewBasket);
         linearLayout = new LinearLayoutManager(MainActivity.this);
+        linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayout);
 
+
         basketDatabase = FirebaseDatabase.getInstance();
+        basketReference = basketDatabase.getReference("baskets");
 
         basketList = new ArrayList<>();
 
-        basketReference = basketDatabase.getReference("baskets");
+
 
 
         //ADAPTER
-        adapter=new MyViewHolder(MainActivity.this,retrieve());
-        recyclerView.setAdapter(adapter);
-        progressBar.setVisibility(View.INVISIBLE);
+
+        adapter=new MyViewHolder(MainActivity.this,retrieve(basketReference));
+        //recyclerView.setAdapter(adapter);
 
 
 
@@ -82,7 +83,8 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                /* Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         *.setAction("Action", null).show();*/
-                   startActivity(new Intent(MainActivity.this, AddBasketApp.class));
+                startActivity(new Intent(MainActivity.this, AddBasketApp.class));
+                finish();
 
 
             }
@@ -126,6 +128,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(MainActivity.this,LoginActivity.class));
             return true;
         }
 
@@ -158,8 +161,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     //READ BY HOOKING ONTO DATABASE OPERATION CALLBACKS
-    public ArrayList<Basket> retrieve()
+    public ArrayList<Basket> retrieve(DatabaseReference basketReference)
     {
+        Toast.makeText(getApplicationContext(),"In Retrive()",Toast.LENGTH_LONG).show();
         basketReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -175,14 +179,26 @@ public class MainActivity extends AppCompatActivity
     }
 
     //IMPLEMENT FETCH DATA AND FILL ARRAYLIST
-    private void fetchData(DataSnapshot dataSnapshot)
+    public void fetchData(DataSnapshot dataSnapshot)
     {
         basketList.clear();
+
+        //basketList.clear();
+        //int count =0;
         for (DataSnapshot ds : dataSnapshot.getChildren())
         {
             Basket basket=ds.getValue(Basket.class);
             basketList.add(basket);
+            setAdap(basketList);
+            //Toast.makeText(getApplicationContext(),"In Fetch() "+count,Toast.LENGTH_LONG).show();
+            //count++;
         }
+
     }
 
+    public void setAdap(ArrayList<Basket> adap) {
+        adapter=new MyViewHolder(MainActivity.this, adap);
+        recyclerView.setAdapter(adapter);
+
+    }
 }

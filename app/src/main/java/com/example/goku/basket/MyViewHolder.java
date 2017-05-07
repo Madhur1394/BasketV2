@@ -12,6 +12,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 
 /**
@@ -24,7 +27,7 @@ public class MyViewHolder extends RecyclerView.Adapter<BasketAdapter> {
 
     public Context context;
     public ArrayList<Basket> basketArrayList;
-    int position;
+    static int position;
 
 
 
@@ -43,8 +46,8 @@ public class MyViewHolder extends RecyclerView.Adapter<BasketAdapter> {
     }
 
     @Override
-    public void onBindViewHolder(BasketAdapter holder, int position) {
-        this.position = position;
+    public void onBindViewHolder(final BasketAdapter holder, final int position) {
+
 
         holder.basketName.setText(basketArrayList.get(position).getBasketTitle());
         holder.basketDes.setText(basketArrayList.get(position).getBasketDesciption());
@@ -54,16 +57,18 @@ public class MyViewHolder extends RecyclerView.Adapter<BasketAdapter> {
             @Override
             public void onClick(View v) {
                 showPopupMenu(v);
+                MyViewHolder.position = holder.getAdapterPosition();
 
+                //Toast.makeText(context,String.valueOf(MyViewHolder.position),Toast.LENGTH_LONG).show();
             }
         });
-
     }
     /**
      * Showing popup menu when tapping on 3 dots
      */
     private void showPopupMenu(View view) {
         // inflate menu
+
         PopupMenu popup = new PopupMenu(context, view);
         MenuInflater inflater = popup.getMenuInflater();
         inflater.inflate(R.menu.menu_item, popup.getMenu());
@@ -83,8 +88,8 @@ public class MyViewHolder extends RecyclerView.Adapter<BasketAdapter> {
         public boolean onMenuItemClick(MenuItem menuItem) {
             switch (menuItem.getItemId()) {
                 case R.id.itemDel:
-                    removeAt(position);
-                    Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show();
+                    removeAt();
+
                     return true;
                 case R.id.itemEdit:
                     Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show();
@@ -95,13 +100,27 @@ public class MyViewHolder extends RecyclerView.Adapter<BasketAdapter> {
         }
     }
 
-    private void removeAt(int position) {
-        basketArrayList.remove(position);
-        notifyItemRemoved(position);
-        // notifyItemRangeChanged(position, getItemCount());
+    private void removeAt() {
+        try {
+
+            basketArrayList.remove(position);
+
+            Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show();
+            notifyItemRemoved(position);
+            Toast.makeText(context,String.valueOf(position),Toast.LENGTH_LONG).show();
+            Toast.makeText(context,String.valueOf(getItemCount()),Toast.LENGTH_LONG).show();
+            int i = getItemCount();
+            //notifyItemChanged(position);
+            //notifyItemRangeChanged(0,i--);
+            Basket basket = basketArrayList.get(position);
+            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("baskets").child(basket.getBasketId());
+            databaseReference.removeValue();
+
+        }
+        catch(Exception e){
+            Toast.makeText(context,e.toString(),Toast.LENGTH_LONG).show();
+        }
     }
-
-
 
     @Override
     public int getItemCount() {

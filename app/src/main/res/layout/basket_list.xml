@@ -42,14 +42,5 @@
             android:text="TextView"
             android:textSize="15dp" />
 
-        <ImageButton
-            android:id="@+id/imageButtonMore_1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center|end"
-            android:layout_marginTop="16dp"
-            android:background="@android:color/transparent"
-            app:srcCompat="@drawable/more" />
-
-        </android.support.v7.widget.CardView>
+    </android.support.v7.widget.CardView>
 </LinearLayout>

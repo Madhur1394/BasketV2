@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:weightSum="1">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_basket_activity"
@@ -18,13 +19,13 @@
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:visibility="invisible"/>
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_marginTop="30dp"
-        android:layout_height="140dp"
-        android:clipToPadding="false"
-        style="@style/MyCardViewStyle">
 
+    <android.support.v7.widget.CardView
+        style="@style/MyCardViewStyle"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:layout_marginTop="30dp"
+        android:clipToPadding="false">
 
 
         <android.support.design.widget.TextInputLayout
@@ -37,25 +38,25 @@
                 android:id="@+id/editText_basket_title"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:theme="@style/MyEditText"
                 android:background="@android:color/transparent"
                 android:hint="Basket Title"
-                android:textSize="30dp"/>
+                android:textSize="30dp"
+                android:theme="@style/MyEditText" />
         </android.support.design.widget.TextInputLayout>
 
         <EditText
-            android:layout_gravity="bottom"
             android:id="@+id/editText_basket_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
             android:layout_marginBottom="5dp"
             android:background="@android:color/transparent"
-            android:theme="@style/MyEditText"
-            android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:hint="tap add to basket description..(Optional)"
-            />
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:theme="@style/MyEditText" />
 
     </android.support.v7.widget.CardView>
+
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_marginTop="10dp"

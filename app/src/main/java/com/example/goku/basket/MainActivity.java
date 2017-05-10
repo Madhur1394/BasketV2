@@ -2,10 +2,13 @@ package com.example.goku.basket;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.SwipeDismissBehavior;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -15,10 +18,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,8 +39,10 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private String basketName_1,basketDescription_1;
-    public int basketCost_1;
+    private TextView userName,userEmail;
+    private ImageView imageView_userPhoto;
+
+    public UserInformation userInformation;
 
     private RecyclerView recyclerView;
     private MyViewHolder adapter;
@@ -45,7 +54,12 @@ public class MainActivity extends AppCompatActivity
     private ProgressBar progressBar;
 
     private FirebaseDatabase basketDatabase;
-    private DatabaseReference basketReference;
+    private DatabaseReference basketReference,userReference;
+
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +67,11 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //Get View Instance
+        userName = (TextView) findViewById(R.id.txtViewuserName);
+        userEmail = (TextView) findViewById(R.id.textViewEmailId);
+        imageView_userPhoto = (ImageView) findViewById(R.id.imageView_user);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar3);
         progressBar.setVisibility(View.INVISIBLE);
@@ -62,20 +81,37 @@ public class MainActivity extends AppCompatActivity
         recyclerView.setLayoutManager(linearLayout);
 
 
+        //GEt Firebase Instance
+        mAuth =FirebaseAuth.getInstance();
         basketDatabase = FirebaseDatabase.getInstance();
-        basketReference = basketDatabase.getReference("baskets");
+
 
         basketList = new ArrayList<>();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if(user != null){
+                    userId = user.getUid();
+                    //Get Firebase DB basket Instance
+                    basketReference = basketDatabase.getReference("baskets").child(userId);
+                    userReference = basketDatabase.getReference("userInfo").child(userId);
+                    getUserInfo(userReference);
+                    //Adapter
+                    adapter=new MyViewHolder(MainActivity.this,retrieve(basketReference));
+                    if(user.isEmailVerified()){
 
-
-
-
-        //ADAPTER
-
-        adapter=new MyViewHolder(MainActivity.this,retrieve(basketReference));
-        //recyclerView.setAdapter(adapter);
-
-
+                    }
+                    else{
+                        startActivity(new Intent(MainActivity.this,LoginActivity.class));
+                    }
+                }
+                else{
+                    startActivity(new Intent(MainActivity.this,LoginActivity.class));
+                    finish();
+                }
+            }
+        };
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -98,9 +134,25 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
     }
 
+    private void getUserInfo(DatabaseReference userReference) {
+        userReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                userInformation = dataSnapshot.getValue(UserInformation.class);
+                Toast.makeText(getApplicationContext(),userInformation.getName(),Toast.LENGTH_LONG).show();
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
 
     @Override
     public void onBackPressed() {
@@ -129,6 +181,10 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             startActivity(new Intent(MainActivity.this,LoginActivity.class));
+            return true;
+        }
+        if(id == R.id.action_signOut){
+            mAuth.signOut();
             return true;
         }
 
@@ -163,7 +219,6 @@ public class MainActivity extends AppCompatActivity
     //READ BY HOOKING ONTO DATABASE OPERATION CALLBACKS
     public ArrayList<Basket> retrieve(DatabaseReference basketReference)
     {
-        Toast.makeText(getApplicationContext(),"In Retrive()",Toast.LENGTH_LONG).show();
         basketReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -183,22 +238,37 @@ public class MainActivity extends AppCompatActivity
     {
         basketList.clear();
 
-        //basketList.clear();
-        //int count =0;
+
         for (DataSnapshot ds : dataSnapshot.getChildren())
         {
             Basket basket=ds.getValue(Basket.class);
             basketList.add(basket);
             setAdap(basketList);
-            //Toast.makeText(getApplicationContext(),"In Fetch() "+count,Toast.LENGTH_LONG).show();
-            //count++;
         }
-
+        //progressBar.setVisibility(View.GONE);
     }
 
     public void setAdap(ArrayList<Basket> adap) {
         adapter=new MyViewHolder(MainActivity.this, adap);
+        ItemTouchHelper.Callback callback =
+                new SimpleItemTouchHelperCallback(adapter,MainActivity.this);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+        touchHelper.attachToRecyclerView(recyclerView);
         recyclerView.setAdapter(adapter);
 
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 }

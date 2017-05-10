@@ -28,6 +28,8 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -61,6 +63,9 @@ public class AddBasketApp extends AppCompatActivity {
 
     private FirebaseDatabase basketDatabase;
     private DatabaseReference basketReference;
+    private FirebaseAuth mAuth;
+
+    private String userId;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,10 +73,13 @@ public class AddBasketApp extends AppCompatActivity {
 
         //Get Firebase Instance
         basketDatabase = FirebaseDatabase.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
+        FirebaseUser user = mAuth.getCurrentUser();
+        userId = user.getUid();
         //Get Firebase Data Reference
 
-        basketReference = basketDatabase.getReference("baskets");
+        basketReference = basketDatabase.getReference("baskets").child(userId);
 
         //Get View Instance
         input_title = (TextInputLayout) findViewById(R.id.inputLayoutBasketTitle);
@@ -140,7 +148,7 @@ public class AddBasketApp extends AppCompatActivity {
                                         itemQuantity = Integer.parseInt(quantity.getText().toString());
                                         itemCost = Integer.parseInt(cost.getText().toString());
                                         item = new ItemList(itemName, itemQuantity, itemCost);
-                                        basketCost1 = itemQuantity * itemCost;
+                                        basketCost1 =basketCost1+ itemQuantity * itemCost;
                                         itemList.add(item);
                                         adapter = new ItemAdapter(AddBasketApp.this, itemList);
                                         recyclerView.setAdapter(adapter);
@@ -186,7 +194,7 @@ public class AddBasketApp extends AppCompatActivity {
                 else {
                     try {
                         if(itemList.isEmpty()){
-                            Toast.makeText(getApplicationContext(),"Item list is Null",Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(),"Basket is Empty!",Toast.LENGTH_LONG).show();
                             basketCost1 = 0;
                         }
                         basketName1 = editTextBasketTitle.getText().toString();
@@ -242,9 +250,10 @@ public class AddBasketApp extends AppCompatActivity {
     private void saveDataIntoDatabase() {
         progressbar.setVisibility(View.VISIBLE);
         basket = new Basket(basketName1,basketDescription1,basketCost1,itemList);
-        String basketId = basketReference.push().getKey();
-        basket.setBasketId(basketId);
-        basketReference.child(basketId).setValue(basket).addOnCompleteListener(new OnCompleteListener<Void>() {
+        String key = basketReference.push().getKey();
+        basket.setBasketId(key);
+
+        basketReference.child(key).setValue(basket).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){

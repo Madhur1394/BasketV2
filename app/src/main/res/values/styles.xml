@@ -42,17 +42,24 @@
     </style>
     <style name="MyItemListStyle" parent="Theme.AppCompat.Light">
         <item name="cardCornerRadius">2dp</item>
-        <item name="cardElevation">4dp</item>
+        <item name="cardElevation">2dp</item>
         <item name="contentPaddingBottom">1dp</item>
         <item name="contentPaddingTop">1dp</item>
         <item name="contentPaddingLeft">1dp</item>
         <item name="contentPaddingRight">1dp</item>
         <item name="cardBackgroundColor">#fafafa</item>
     </style>
+    <style name="ToolbarColored" parent="AppTheme">
+        <item name="android:textColorSecondary">#FF000000</item>
+        <item name="android:actionButtonStyle">@style/MyIcon</item>
+    </style>
 
     <!--Floating label text style-->
     <style name="MyHintText" parent="TextAppearance.AppCompat.Small">
         <item name="android:textColor">@color/pink</item>
+    </style>
+    <style name="MyIcon">
+        <item name="android:color">#FF000000</item>
     </style>
 
     <!--Input field style-->

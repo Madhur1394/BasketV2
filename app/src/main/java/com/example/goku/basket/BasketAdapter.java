@@ -19,23 +19,15 @@ import java.util.List;
  * Created by goku on 5/5/17.
  */
 
-public class BasketAdapter extends RecyclerView.ViewHolder {
+public class BasketAdapter extends RecyclerView.ViewHolder{
 
     public TextView basketName,basketDes,basketCost;
 
-    public ImageButton imageButtonMore;
 
     public BasketAdapter(View itemView) {
         super(itemView);
         basketName=(TextView) itemView.findViewById(R.id.textViewBasketTitle);
         basketDes=(TextView) itemView.findViewById(R.id.textViewBasketDescription);
         basketCost=(TextView) itemView.findViewById(R.id.textViewBasketCost);
-        imageButtonMore = (ImageButton) itemView.findViewById(R.id.imageButtonMore_1);
     }
-
-
-
-
-
-
 }

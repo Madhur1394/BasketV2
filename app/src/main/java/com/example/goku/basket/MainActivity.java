@@ -9,6 +9,7 @@ import android.support.design.widget.SwipeDismissBehavior;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -24,6 +25,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.andexert.library.RippleView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -41,6 +45,9 @@ public class MainActivity extends AppCompatActivity
 
     private TextView userName,userEmail;
     private ImageView imageView_userPhoto;
+    private NavigationView navigationView;
+    private View navHeader;
+    private View ripple;
 
     public UserInformation userInformation;
 
@@ -68,10 +75,15 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        // Navigation view header
+        navHeader = navigationView.getHeaderView(0);
+
         //Get View Instance
-        userName = (TextView) findViewById(R.id.txtViewuserName);
-        userEmail = (TextView) findViewById(R.id.textViewEmailId);
-        imageView_userPhoto = (ImageView) findViewById(R.id.imageView_user);
+        userName = (TextView) navHeader.findViewById(R.id.txtViewuserName);
+        userEmail = (TextView) navHeader.findViewById(R.id.textViewEmailId);
+        imageView_userPhoto = (ImageView) navHeader.findViewById(R.id.imageView_user);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar3);
         progressBar.setVisibility(View.INVISIBLE);
@@ -79,7 +91,6 @@ public class MainActivity extends AppCompatActivity
         linearLayout = new LinearLayoutManager(MainActivity.this);
         linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayout);
-
 
         //GEt Firebase Instance
         mAuth =FirebaseAuth.getInstance();
@@ -104,6 +115,7 @@ public class MainActivity extends AppCompatActivity
                     }
                     else{
                         startActivity(new Intent(MainActivity.this,LoginActivity.class));
+                        finish();
                     }
                 }
                 else{
@@ -138,12 +150,23 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void getUserInfo(DatabaseReference userReference) {
+    private void getUserInfo(final DatabaseReference userReference) {
         userReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 userInformation = dataSnapshot.getValue(UserInformation.class);
-                Toast.makeText(getApplicationContext(),userInformation.getName(),Toast.LENGTH_LONG).show();
+
+                userEmail.setText(userInformation.getEmail());
+                userName.setText(userInformation.getName());
+                userName.setAllCaps(true);
+                userName.setTextSize(20);
+                // Loading profile image
+                Glide.with(MainActivity.this).load(userInformation.getPhotoUrl())
+                        .crossFade()
+                        .thumbnail(0.5f)
+                        .bitmapTransform(new CircleTransform(MainActivity.this))
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(imageView_userPhoto);
             }
 
             @Override
@@ -151,7 +174,6 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-
     }
 
     @Override
@@ -180,7 +202,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(MainActivity.this,LoginActivity.class));
+
             return true;
         }
         if(id == R.id.action_signOut){

@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -36,18 +37,20 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
+import com.oguzdev.circularfloatingactionmenu.library.SubActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private TextView userName,userEmail;
+    private TextView userName, userEmail;
     private ImageView imageView_userPhoto;
     private NavigationView navigationView;
     private View navHeader;
-    private View ripple;
 
     public UserInformation userInformation;
 
@@ -55,13 +58,13 @@ public class MainActivity extends AppCompatActivity
     private MyViewHolder adapter;
     private ArrayList<Basket> basketList;
 
-    public Basket basket;
+    public Basket basket, basket_1;
 
     public LinearLayoutManager linearLayout;
     private ProgressBar progressBar;
 
     private FirebaseDatabase basketDatabase;
-    private DatabaseReference basketReference,userReference;
+    private DatabaseReference basketReference, userReference;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -93,8 +96,26 @@ public class MainActivity extends AppCompatActivity
         recyclerView.setLayoutManager(linearLayout);
 
         //GEt Firebase Instance
-        mAuth =FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();
         basketDatabase = FirebaseDatabase.getInstance();
+
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        // TODO Handle item click
+                        basket_1 = basketList.get(position);
+                        //Toast.makeText(getApplicationContext(),basket_1.getBasketTitle(),Toast.LENGTH_LONG).show();
+                        Bundle bundle = new Bundle();
+                        bundle.putString("UserId", userId);
+                        bundle.putString("BasketId", basket_1.getBasketId());
+                        Intent intent = new Intent(MainActivity.this, ItemActivity.class);
+                        intent.putExtra("BasketInfo", bundle);
+                        startActivity(intent);
+                        finish();
+                    }
+                })
+        );
 
 
         basketList = new ArrayList<>();
@@ -102,39 +123,57 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
-                if(user != null){
+                if (user != null) {
                     userId = user.getUid();
                     //Get Firebase DB basket Instance
                     basketReference = basketDatabase.getReference("baskets").child(userId);
                     userReference = basketDatabase.getReference("userInfo").child(userId);
                     getUserInfo(userReference);
                     //Adapter
-                    adapter=new MyViewHolder(MainActivity.this,retrieve(basketReference));
-                    if(user.isEmailVerified()){
+                    adapter = new MyViewHolder(MainActivity.this, retrieve(basketReference));
+                    if (user.isEmailVerified()) {
 
+                    } else {
+                        startActivity(new Intent(MainActivity.this, LoginActivity.class));
                     }
-                    else{
-                        startActivity(new Intent(MainActivity.this,LoginActivity.class));
-                        finish();
-                    }
-                }
-                else{
-                    startActivity(new Intent(MainActivity.this,LoginActivity.class));
+                } else {
+                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
                     finish();
                 }
             }
         };
 
+        SubActionButton.Builder itemButton = new SubActionButton.Builder(this);
+
+        ImageView imageIcon1, imageIcon2;
+        imageIcon1 = new ImageView(this);
+        imageIcon2 = new ImageView(this);
+
+        imageIcon1.setImageDrawable(getDrawable(R.drawable.addrec));
+        imageIcon2.setImageDrawable(getDrawable(R.drawable.basketplus));
+
+        SubActionButton btn1 = itemButton.setContentView(imageIcon1).setLayoutParams(new com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton.LayoutParams(150, 150))
+                .build();
+        SubActionButton btn2 = itemButton.setContentView(imageIcon2).setLayoutParams(new com.oguzdev.circularfloatingactionmenu.library.FloatingActionButton.LayoutParams(150, 150))
+                .build();
+
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+
+        FloatingActionMenu actionMenu = new FloatingActionMenu.Builder(this)
+                .addSubActionView(btn1)
+                .addSubActionView(btn2)
+                .attachTo(fab)
+                .build();
+
+        btn2.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-               /* Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+            public void onClick(View v) {
+                /* Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         *.setAction("Action", null).show();*/
                 startActivity(new Intent(MainActivity.this, AddBasketApp.class));
                 finish();
-
-
             }
         });
 
@@ -161,12 +200,16 @@ public class MainActivity extends AppCompatActivity
                 userName.setAllCaps(true);
                 userName.setTextSize(20);
                 // Loading profile image
-                Glide.with(MainActivity.this).load(userInformation.getPhotoUrl())
-                        .crossFade()
-                        .thumbnail(0.5f)
-                        .bitmapTransform(new CircleTransform(MainActivity.this))
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .into(imageView_userPhoto);
+                try {
+                    Glide.with(MainActivity.this).load(userInformation.getPhotoUrl())
+                            .crossFade()
+                            .thumbnail(0.5f)
+                            .bitmapTransform(new CircleTransform(MainActivity.this))
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .into(imageView_userPhoto);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override
@@ -205,7 +248,7 @@ public class MainActivity extends AppCompatActivity
 
             return true;
         }
-        if(id == R.id.action_signOut){
+        if (id == R.id.action_signOut) {
             mAuth.signOut();
             return true;
         }
@@ -239,8 +282,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     //READ BY HOOKING ONTO DATABASE OPERATION CALLBACKS
-    public ArrayList<Basket> retrieve(DatabaseReference basketReference)
-    {
+    public ArrayList<Basket> retrieve(DatabaseReference basketReference) {
         basketReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -256,24 +298,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     //IMPLEMENT FETCH DATA AND FILL ARRAYLIST
-    public void fetchData(DataSnapshot dataSnapshot)
-    {
+    public void fetchData(DataSnapshot dataSnapshot) {
         basketList.clear();
-
-
-        for (DataSnapshot ds : dataSnapshot.getChildren())
-        {
-            Basket basket=ds.getValue(Basket.class);
+        for (DataSnapshot ds : dataSnapshot.getChildren()) {
+            Basket basket = ds.getValue(Basket.class);
             basketList.add(basket);
             setAdap(basketList);
         }
-        //progressBar.setVisibility(View.GONE);
     }
 
     public void setAdap(ArrayList<Basket> adap) {
-        adapter=new MyViewHolder(MainActivity.this, adap);
+        adapter = new MyViewHolder(MainActivity.this, adap);
         ItemTouchHelper.Callback callback =
-                new SimpleItemTouchHelperCallback(adapter,MainActivity.this);
+                new SimpleItemTouchHelperCallback(adapter, MainActivity.this);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(recyclerView);
         recyclerView.setAdapter(adapter);

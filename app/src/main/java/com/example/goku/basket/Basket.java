@@ -11,6 +11,25 @@ public class Basket implements Serializable {
     public String basketTitle;
     public String basketDesciption;
     public String basketId;
+    public String createBasketTime;
+    public String lastEditTime;
+
+    public String getCreateBasketTime() {
+        return createBasketTime;
+    }
+
+    public void setCreateBasketTime(String createBasketTime) {
+        this.createBasketTime = createBasketTime;
+    }
+
+    public String getLastEditTime() {
+        return lastEditTime;
+    }
+
+    public void setLastEditTime(String lastEditTime) {
+        this.lastEditTime = lastEditTime;
+    }
+
     public int basketCost;
     public List<ItemList> itemLists;
 
@@ -28,11 +47,13 @@ public class Basket implements Serializable {
     public Basket() {
     }
 
-    public Basket(String basketTitle, String basketDesciption, int basketCost, List<ItemList> itemLists) {
+    public Basket(String basketTitle, String basketDesciption, int basketCost, String createBasketTime, String lastEditTime, List<ItemList> itemLists) {
 
         this.basketTitle = basketTitle;
         this.basketDesciption = basketDesciption;
         this.basketCost = basketCost;
+        this.createBasketTime = createBasketTime;
+        this.lastEditTime = lastEditTime;
         this.itemLists = itemLists;
     }
 

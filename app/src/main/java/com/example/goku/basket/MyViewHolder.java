@@ -85,4 +85,5 @@ public class MyViewHolder extends RecyclerView.Adapter<BasketAdapter> implements
     public int getItemCount() {
         return basketArrayList.size();
     }
+
 }

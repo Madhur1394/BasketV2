@@ -36,7 +36,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import org.w3c.dom.Text;
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -66,6 +69,7 @@ public class AddBasketApp extends AppCompatActivity {
     private FirebaseAuth mAuth;
 
     private String userId;
+    private int ITEM_ID = 0;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,7 +103,7 @@ public class AddBasketApp extends AppCompatActivity {
         Toolbar tb = (Toolbar) findViewById(R.id.toolbar_basket_activity);
         setSupportActionBar(tb);
 
-        // add back arrow to toolbar
+        // add back arrow in toolbar
         if (getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -147,7 +151,8 @@ public class AddBasketApp extends AppCompatActivity {
                                     else {
                                         itemQuantity = Integer.parseInt(quantity.getText().toString());
                                         itemCost = Integer.parseInt(cost.getText().toString());
-                                        item = new ItemList(itemName, itemQuantity, itemCost);
+                                        item = new ItemList(ITEM_ID, itemName, itemQuantity, itemCost);
+                                        ITEM_ID++;
                                         basketCost1 =basketCost1+ itemQuantity * itemCost;
                                         itemList.add(item);
                                         adapter = new ItemAdapter(AddBasketApp.this, itemList);
@@ -249,7 +254,9 @@ public class AddBasketApp extends AppCompatActivity {
 
     private void saveDataIntoDatabase() {
         progressbar.setVisibility(View.VISIBLE);
-        basket = new Basket(basketName1,basketDescription1,basketCost1,itemList);
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy, HH:mm");
+        String date = df.format(Calendar.getInstance().getTime());
+        basket = new Basket(basketName1, basketDescription1, basketCost1, date, date, itemList);
         String key = basketReference.push().getKey();
         basket.setBasketId(key);
 

@@ -1,16 +1,23 @@
 package com.example.goku.basket;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.util.List;
 
@@ -99,12 +106,65 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
                     Toast.makeText(context, "Delete", Toast.LENGTH_SHORT).show();
                     return true;
                 case R.id.itemEdit:
+                    editAt(position);
                     Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show();
                     return true;
                 default:
             }
             return false;
         }
+    }
+
+    private void editAt(final int position) {
+        final EditText name = new EditText(context);
+        final EditText quantity = new EditText(context);
+        final EditText cost = new EditText(context);
+
+        LinearLayout ll = new LinearLayout(context);
+        ll.setOrientation(LinearLayout.VERTICAL);
+        ll.addView(name);
+        ll.addView(quantity);
+        ll.addView(cost);
+
+        name.setInputType(InputType.TYPE_CLASS_TEXT);
+        name.setHint("Enter Item Name");
+        quantity.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        quantity.setHint("Enter Quantity");
+        cost.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        cost.setHint("Enter Each Item Cost");
+        MaterialDialog dialog = new MaterialDialog.Builder(context)
+                .title("Edit Item!")
+                .customView(ll, true)
+                .positiveText("Save")
+                .negativeText("Cancel")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                        if (name.getText().toString().isEmpty()) {
+                            name.setError("Please ill the field!");
+                            return;
+                        } else if (quantity.getText().toString().isEmpty()) {
+                            quantity.setError("Please fill the field");
+                            return;
+                        } else if (cost.getText().toString().isEmpty()) {
+                            cost.setError("Please fill the field");
+                            return;
+                        } else {
+                            item = new ItemList(position, name.getText().toString(), Integer.parseInt(quantity.getText().toString()), Integer.parseInt(cost.getText().toString()));
+                            removeAt(position);
+                            itemList.add(position, item);
+                            notifyItemInserted(position);
+                        }
+                    }
+                })
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        Toast.makeText(context, "Item Is Not update", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
     }
 
     private void removeAt(int position) {

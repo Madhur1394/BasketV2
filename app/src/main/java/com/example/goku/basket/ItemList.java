@@ -6,7 +6,18 @@ package com.example.goku.basket;
 
 public class ItemList {
     private String ItemName;
-    private int ItemQuan,ItemCost;
+    private int ItemQuan;
+    private int ItemCost;
+
+    public int getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(int itemId) {
+        this.itemId = itemId;
+    }
+
+    private int itemId;
 
     public String getItemName() {
         return ItemName;
@@ -36,7 +47,8 @@ public class ItemList {
 
     }
 
-    public ItemList(String itemName, int itemQuan, int itemCost) {
+    public ItemList(int itemId, String itemName, int itemQuan, int itemCost) {
+        this.itemId = itemId;
         ItemName = itemName;
         ItemQuan = itemQuan;
         ItemCost = itemCost;
